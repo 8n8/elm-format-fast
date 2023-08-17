@@ -55,8 +55,8 @@ def main():
 
         formatted_hashes.add(digest)
 
-        with open(cache_path, "w") as file_handle:
-            json.dump(list(formatted_hashes), file_handle)
+    with open(cache_path, "w") as file_handle:
+        json.dump(list(formatted_hashes), file_handle)
 
 
 main()
