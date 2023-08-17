@@ -30,7 +30,7 @@ def main():
 
     for elm_path in get_elm_paths():
         print(elm_path)
-        with open(elm_path, "r") as file_handle:
+        with open(elm_path, "rb") as file_handle:
             elm_code = file_handle.read()
 
         hasher = hashlib.blake2b(digest_size=32)
