@@ -6,57 +6,50 @@ import subprocess
 import pathlib
 import json
 
-def get_elm_paths():
-    elm_paths = []
+elm_paths = []
 
-    for root, _, file_names in os.walk("."):
-        for file_name in file_names:
-            if file_name[-4:] == ".elm":
-                elm_paths.append(root + "/" + file_name)
-
-    return elm_paths
+for root, _, file_names in os.walk("."):
+    for file_name in file_names:
+        if file_name[-4:] == ".elm":
+            elm_paths.append(root + "/" + file_name)
 
 
 cache_path = pathlib.Path.home() / ".elm-format-cache"
 
 
-def main():
-    try:
-        with open(cache_path) as file_handle:
-            formatted_hashes = set(json.load(file_handle))
+try:
+    with open(cache_path) as file_handle:
+        formatted_hashes = set(json.load(file_handle))
 
-    except FileNotFoundError:
-        formatted_hashes = set()
+except FileNotFoundError:
+    formatted_hashes = set()
 
-    for elm_path in get_elm_paths():
-        print(elm_path)
-        with open(elm_path, "rb") as file_handle:
-            elm_code = file_handle.read()
+for elm_path in elm_paths:
+    print(elm_path)
+    with open(elm_path, "rb") as file_handle:
+        elm_code = file_handle.read()
 
-        hasher = hashlib.blake2b(digest_size=32)
-        hasher.update(elm_code)
-        digest = hasher.hexdigest()
+    hasher = hashlib.blake2b(digest_size=32)
+    hasher.update(elm_code)
+    digest = hasher.hexdigest()
 
-        if digest in formatted_hashes:
-            continue
+    if digest in formatted_hashes:
+        continue
 
-        result = subprocess.run(["elm-format", "--stdin"], input=elm_code, stdout=subprocess.PIPE)
-        if result.returncode != 0:
-            continue
+    result = subprocess.run(["elm-format", "--stdin"], input=elm_code, stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        continue
 
-        formatted = result.stdout
+    formatted = result.stdout
 
-        with open(elm_path, "wb") as file_handle:
-            file_handle.write(formatted)
+    with open(elm_path, "wb") as file_handle:
+        file_handle.write(formatted)
 
-        hasher = hashlib.blake2b(digest_size=32)
-        hasher.update(formatted)
-        digest = hasher.hexdigest()
+    hasher = hashlib.blake2b(digest_size=32)
+    hasher.update(formatted)
+    digest = hasher.hexdigest()
 
-        formatted_hashes.add(digest)
+    formatted_hashes.add(digest)
 
-    with open(cache_path, "w") as file_handle:
-        json.dump(list(formatted_hashes), file_handle)
-
-
-main()
+with open(cache_path, "w") as file_handle:
+    json.dump(list(formatted_hashes), file_handle)
